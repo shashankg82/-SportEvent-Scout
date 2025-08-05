@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SportEvent Scout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f9f9f9;
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        input[type="text"], select, input[type="date"], button {
+            padding: 8px 12px;
+            margin: 0 6px 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #results div {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+        }
+
+        #results h4 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #007bff;
+        }
+
+        #results p {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        #results a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 12px;
+        }
+
+        #results a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h2>🏆 SportEvent Scout</h2>
+    <input type="text" id="searchInput" placeholder="Search for tournaments...">
+    <select id="sportSelect">
+        <option value="">All Sports</option>
+        <option value="Cricket">Cricket</option>
+        <option value="Football">Football</option>
+        <option value="Badminton">Badminton</option>
+        <option value="Running">Running</option>
+        <option value="Gym">Gym</option>
+        <option value="Cycling">Cycling</option>
+        <option value="Swimming">Swimming</option>
+        <option value="Kabaddi">Kabaddi</option>
+        <option value="Yoga">Yoga</option>
+        <option value="Basketball">Basketball</option>
+        <option value="Chess">Chess</option>
+        <option value="Table Tennis">Table Tennis</option>
+    </select>
+    <select id="levelSelect">
+        <option value="">All Levels</option>
+        <option value="Corporate">Corporate</option>
+        <option value="School">School</option>
+        <option value="College/University">College/University</option>
+        <option value="Club/Academy">Club/Academy</option>
+        <option value="District">District</option>
+        <option value="State">State</option>
+        <option value="Zonal/Regional">Zonal/Regional</option>
+        <option value="National">National</option>
+        <option value="International">International</option>
+    </select>
+    <input type="date" id="startDate">
+    <input type="date" id="endDate">
+    <button onclick="resetFilters()">Reset Filters</button>
+    <div id="results"></div>
+    <script>
+        async function fetchTournaments() {
+            let sport = document.getElementById('sportSelect').value;
+            let level = document.getElementById('levelSelect').value;
+            let start = document.getElementById('startDate').value;
+            let end = document.getElementById('endDate').value;
+            let url = `http://127.0.0.1:8000/api/tournaments/?`;
+            if (sport) url += `sport=${sport}&`;
+            if (level) url += `level=${level}&`;
+            if (start) url += `start_date=${start}&`;
+            if (end) url += `end_date=${end}&`;
+            const response = await fetch(url);
+            const data = await response.json();
+            renderResults(data);
+        }
+        function renderResults(data) {
+            const results = document.getElementById('results');
+            if (data.length === 0) {
+                results.innerHTML = '<h3>No Tournaments Found</h3>';
+                return;
+            }
+            results.innerHTML = data.map(t => 
+                `<div>
+                    <h4>${t.name}</h4>
+                    <p>${t.sport} | ${t.level} | ${t.start_date} to ${t.end_date}</p>
+                    <p><em>${t.summary}</em></p>
+                    <p>
+                      <a href="${t.official_url}" target="_blank">Official Link</a>
+                      ${t.streaming_links ? '| <a href="' + t.streaming_links + '" target="_blank">Streaming</a>' : ''}
+                    </p>
+                </div>`).join('');
+        }
+        document.getElementById('sportSelect').onchange = fetchTournaments;
+        document.getElementById('levelSelect').onchange = fetchTournaments;
+        document.getElementById('startDate').onchange = fetchTournaments;
+        document.getElementById('endDate').onchange = fetchTournaments;
+        function resetFilters() {
+            document.getElementById('sportSelect').selectedIndex = 0;
+            document.getElementById('levelSelect').selectedIndex = 0;
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            fetchTournaments();
+        }
+        
+        fetchTournaments();
+    </script>
+</body>
+</html>
